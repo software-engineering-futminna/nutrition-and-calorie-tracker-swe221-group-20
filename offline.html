@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#059669">
+    <title>You're Offline - NutriFlow</title>
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --bg-sidebar: #064e3b;
+            --bg-body: #f4f6f5;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .card {
+            width: 100%;
+            max-width: 420px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 36px 32px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        }
+        .icon-wrap {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 20px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(160deg, var(--primary), var(--bg-sidebar));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        h1 {
+            font-size: 1.375rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            margin-bottom: 8px;
+        }
+        p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 16px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        .status.online {
+            background: #ecfdf5;
+            color: #047857;
+        }
+        .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        .tip {
+            margin-top: 20px;
+            padding: 12px 14px;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: left;
+        }
+        button {
+            margin-top: 24px;
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            border-radius: var(--radius-md);
+            background-color: var(--primary-dark);
+            color: #ffffff;
+            font-size: 0.875rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        button:hover { background-color: #047857; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon-wrap">
+            <!-- inline SVG leaf mark, no external icon dependency -->
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 15C4 8 9 4 20 4C20 15 16 20 9 20C6 20 4 18 4 15Z" fill="#ffffff"/>
+                <path d="M18.5 5.5C13 9 9 13 5.5 18.5" stroke="#a7f3d0" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <h1>You're offline</h1>
+        <p>NutriFlow can't reach the network right now. Once you've loaded the app at least once, your dashboard, food log, and offline food library still work without a connection.</p>
+
+        <span class="status" id="statusPill"><span class="dot"></span><span id="statusText">Offline</span></span>
+
+        <div class="tip">
+            <strong>Tip:</strong> anything saved to your Offline Food library, plus foods you've already searched or scanned, will still be there when the app loads.
+        </div>
+
+        <button id="retryBtn" onclick="location.reload()">Try Again</button>
+    </div>
+
+    <script>
+        function refreshStatus() {
+            const pill = document.getElementById('statusPill');
+            const text = document.getElementById('statusText');
+            const online = navigator.onLine;
+            pill.classList.toggle('online', online);
+            text.textContent = online ? 'Back online' : 'Offline';
+        }
+        window.addEventListener('online', () => { refreshStatus(); location.reload(); });
+        window.addEventListener('offline', refreshStatus);
+        refreshStatus();
+    </script>
+</body>
+</html>

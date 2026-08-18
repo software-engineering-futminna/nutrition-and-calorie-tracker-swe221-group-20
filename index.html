@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>NutriFlow - Smart Nutrition & Calorie Tracker</title>
+    <meta name="description" content="Track calories, macros, and food nutrition with barcode scanning, an offline food library, and Open Food Facts integration.">
+
+    <!-- PWA: Web App Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#059669">
+    <meta name="background-color" content="#f4f6f5">
+    
+    <!--Google Fonts   -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+
+    <!-- PWA: Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="asset/icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="asset/icons/favicon-16.png">
+    <link rel="shortcut icon" href="asset/icons/favicon.ico">
+    <link rel="apple-touch-icon" href="asset/icons/apple-touch-icon.png">
+
+    <!-- PWA: iOS install support (Safari does not read manifest.json for these) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="NutriFlow">
+
+    <!-- PWA: Android/Chrome install support -->
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="asset/css/style.css">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+</head>
+<body>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer"></div>
+
+    <div class="app-container">
+
+        <!-- Desktop Sidebar -->
+        <aside class="sidebar">
+            <div class="brand-header">
+                <div class="brand-logo">
+                    <i data-lucide="leaf" style="width:24px; height:24px;"></i>
+                </div>
+                <div>
+                    <h1 class="brand-title">NutriFlow</h1>
+                    <span class="brand-subtitle">Smart Nutrition</span>
+                </div>
+            </div>
+
+            <!-- Offline Status Indicator -->
+            <div class="status-badge">
+                <span class="ping-dot"></span>
+                <span style="font-weight:600;">Offline Storage Ready</span>
+            </div>
+
+            <!-- Install App CTA (shown once the browser reports the app is installable) -->
+            <button id="installBtnSidebar" class="btn btn-primary js-install-btn hidden" style="margin:0 8px 16px 8px; width:calc(100% - 16px);">
+                <i data-lucide="download" style="width:16px; height:16px;"></i>
+                <span>Install App</span>
+            </button>
+
+            <!-- Navigation Links -->
+            <nav class="nav-list" id="desktopNav">
+                <button class="nav-item active" data-view="dashboard">
+                    <i data-lucide="layout-dashboard" style="width:20px; height:20px;"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-item" data-view="search">
+                    <i data-lucide="search" style="width:20px; height:20px;"></i>
+                    <span>Search Food</span>
+                </button>
+                <button class="nav-item" data-view="barcode">
+                    <i data-lucide="qr-code" style="width:20px; height:20px;"></i>
+                    <span>Barcode Scan</span>
+                </button>
+                <button class="nav-item" data-view="offline">
+                    <i data-lucide="database" style="width:20px; height:20px;"></i>
+                    <span>Offline Foods</span>
+                    <span id="offlineCountBadge" class="badge-pill">0</span>
+                </button>
+                <button class="nav-item" data-view="log">
+                    <i data-lucide="clipboard-list" style="width:20px; height:20px;"></i>
+                    <span>Daily Log</span>
+                </button>
+                <button class="nav-item" data-view="goals">
+                    <i data-lucide="target" style="width:20px; height:20px;"></i>
+                    <span>Nutrition Goals</span>
+                </button>
+
+                <div class="nav-divider">
+                    <p class="nav-section-title">Management</p>
+                    <button class="nav-item" data-view="history">
+                        <i data-lucide="history" style="width:20px; height:20px;"></i>
+                        <span>History</span>
+                    </button>
+                    <button class="nav-item" data-view="settings">
+                        <i data-lucide="settings" style="width:20px; height:20px;"></i>
+                        <span>Settings</span>
+                    </button>
+                    <button class="nav-item" data-view="about">
+                        <i data-lucide="info" style="width:20px; height:20px;"></i>
+                        <span>About</span>
+                    </button>
+                </div>
+            </nav>
+
+            <!-- User Footer Profile Card -->
+            <div class="user-profile-card">
+                <img id="sidebarAvatar" src="asset/icons/profile_pic.jpg" alt="Avatar" class="user-avatar">
+                <div style="overflow: hidden;">
+                    <p id="sidebarUserName" style="font-size:0.875rem; font-weight:700; color:#fff; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">John Doe</p>
+                    <p id="sidebarUserEmail" style="font-size:0.75rem; color:#a7f3d0; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">john@example.com</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+
+            <!-- Mobile Top Header -->
+            <header class="mobile-header">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="width:32px; height:32px; border-radius:8px; background:#059669; display:flex; align-items:center; justify-content:center; color:#fff;">
+                        <i data-lucide="leaf" style="width:18px; height:18px;"></i>
+                    </div>
+                    <span style="font-weight:800; font-size:1.125rem;">NutriFlow</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <button onclick="switchView('offline')" class="btn btn-light" style="padding:4px 10px; font-size:0.75rem; border-radius:999px;">
+                        <i data-lucide="database" style="width:14px; height:14px;"></i>
+                        <span id="mobileOfflineCount">0</span>
+                    </button>
+                    <button id="installBtnMobile" class="btn btn-light js-install-btn hidden" style="padding:6px;" aria-label="Install App">
+                        <i data-lucide="download" style="width:18px; height:18px;"></i>
+                    </button>
+                    <button onclick="switchView('settings')" class="btn btn-light" style="padding:6px;">
+                        <i data-lucide="settings" style="width:18px; height:18px;"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- 1. DASHBOARD VIEW -->
+            <section id="view-dashboard" class="page-view active">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+                    <div>
+                        <h1 style="font-size:1.75rem; font-weight:900; letter-spacing:-0.02em;">
+                            Welcome back, <span id="dashWelcomeName" style="color:var(--primary-dark);">John</span>! 👋
+                        </h1>
+                        <p style="font-size:0.875rem; color:var(--text-muted);">Here's your smart nutrition & calorie summary for today.</p>
+                    </div>
+                    <div class="card" style="padding:8px 16px; font-size:0.8125rem; font-weight:600; color:var(--text-muted); display:flex; align-items:center; gap:8px;">
+                        <i data-lucide="calendar" style="width:16px; height:16px; color:var(--primary-dark);"></i>
+                        <span id="currentDateDisplay">May 10, 2026 • Sunday</span>
+                    </div>
+                </div>
+
+                <!-- Dashboard Interactive Grid -->
+                <div class="grid-3" style="margin-bottom:24px;">
+                    <!-- Calorie Progress Radial Card -->
+                    <div class="card" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+                        <h3 style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Today's Calorie Goal</h3>
+                        
+                        <div style="position:relative; margin:12px 0; width:176px; height:176px; display:flex; align-items:center; justify-content:center;">
+                            <svg style="width:100%; height:100%; transform:rotate(-90deg);" viewBox="0 0 160 160">
+                                <circle cx="80" cy="80" r="68" stroke="#e2e8f0" stroke-width="12" fill="none" />
+                                <circle id="calorieRingFill" cx="80" cy="80" r="68" stroke="#10b981" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="427" stroke-dashoffset="427" class="progress-ring-circle" />
+                            </svg>
+                            <div style="position:absolute; display:flex; flex-direction:column; align-items:center;">
+                                <span id="dashCalories" style="font-size:2rem; font-weight:900; line-height:1;">0</span>
+                                <span style="font-size:0.75rem; font-weight:700; color:var(--text-subtle); text-transform:uppercase;">kcal</span>
+                            </div>
+                        </div>
+
+                        <p style="font-size:0.875rem; font-weight:600; color:var(--text-muted);">
+                            of <span id="dashCalorieGoal" style="color:var(--text-main); font-weight:800;">2500</span> kcal target
+                        </p>
+                        <span style="margin-top:8px; font-size:0.75rem; font-weight:700; color:#047857; background:#d1fae5; padding:4px 12px; border-radius:999px;">
+                            <span id="dashCaloriePct">0</span>% completed
+                        </span>
+                    </div>
+
+                    <!-- Macronutrient Target Progress Card -->
+                    <div class="card" style="grid-column: span 2; display:flex; flex-direction:column; justify-content:space-between;">
+                        <div>
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                                <h3 style="font-size:1rem; font-weight:800; display:flex; align-items:center; gap:8px;">
+                                    <i data-lucide="pie-chart" style="width:20px; height:20px; color:var(--primary-dark);"></i>
+                                    Macronutrients Breakdown
+                                </h3>
+                                <button onclick="switchView('goals')" class="btn" style="padding:0; color:var(--primary-dark); font-size:0.75rem; background:none;">
+                                    Adjust Target <i data-lucide="arrow-right" style="width:14px; height:14px;"></i>
+                                </button>
+                            </div>
+
+                            <div style="display:flex; flex-direction:column; gap:16px;">
+                                <!-- Carbs -->
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:700; margin-bottom:4px;">
+                                        <span style="color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+                                            <span style="width:10px; height:10px; border-radius:50%; background:#10b981;"></span> Carbohydrates
+                                        </span>
+                                        <span><strong id="dashCarbsVal">0</strong> / <span id="dashCarbsGoal">300</span>g</span>
+                                    </div>
+                                    <div class="macro-bar-container">
+                                        <div id="dashCarbsBar" class="macro-bar-fill bg-carbs" style="width: 0%"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Protein -->
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:700; margin-bottom:4px;">
+                                        <span style="color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+                                            <span style="width:10px; height:10px; border-radius:50%; background:#3b82f6;"></span> Protein
+                                        </span>
+                                        <span><strong id="dashProteinVal">0</strong> / <span id="dashProteinGoal">100</span>g</span>
+                                    </div>
+                                    <div class="macro-bar-container">
+                                        <div id="dashProteinBar" class="macro-bar-fill bg-protein" style="width: 0%"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Fat -->
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:700; margin-bottom:4px;">
+                                        <span style="color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+                                            <span style="width:10px; height:10px; border-radius:50%; background:#f59e0b;"></span> Fat
+                                        </span>
+                                        <span><strong id="dashFatVal">0</strong> / <span id="dashFatGoal">70</span>g</span>
+                                    </div>
+                                    <div class="macro-bar-container">
+                                        <div id="dashFatBar" class="macro-bar-fill bg-fat" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--border-subtle); display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted);">
+                            <span>Auto-saved to offline memory</span>
+                            <span style="color:var(--primary-dark); font-weight:600; display:flex; align-items:center; gap:4px;">
+                                <i data-lucide="check-circle" style="width:16px; height:16px;"></i> Realtime Sync
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recently Added -->
+                <div class="card">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                        <h3 style="font-size:1rem; font-weight:800;">Recently Logged Foods</h3>
+                        <button onclick="switchView('log')" class="btn" style="padding:0; color:var(--primary-dark); font-size:0.75rem; background:none;">View Daily Log</button>
+                    </div>
+                    <div id="recentFoodsGrid" class="grid-5">
+                        <!-- Dynamic Tiles -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. SEARCH FOOD VIEW -->
+            <section id="view-search" class="page-view">
+                <div style="margin-bottom:24px;">
+                    <h2 style="font-size:1.5rem; font-weight:900;">Search Food Database</h2>
+                    <p style="font-size:0.875rem; color:var(--text-muted);">Search thousands of items via Open Food Facts or your saved offline library.</p>
+                </div>
+
+                <!-- Search Input Bar -->
+                <form id="searchForm" style="position:relative; margin-bottom:24px;">
+                    <i data-lucide="search" style="position:absolute; left:16px; top:50%; transform:translateY(-50%); width:20px; height:20px; color:var(--text-subtle);"></i>
+                    <input type="text" id="searchInput" placeholder="Search by food name or barcode..." class="input-control" style="padding-left:48px; padding-right:120px; padding-top:14px; padding-bottom:14px; border-radius:var(--radius-lg);">
+                    <button type="submit" class="btn btn-primary" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); padding:8px 16px;">
+                        Search
+                    </button>
+                </form>
+
+                <!-- Popular Suggestions -->
+                <div style="margin-bottom:32px;">
+                    <h3 style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-subtle); letter-spacing:0.05em; margin-bottom:12px;">Popular Searches</h3>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                        <button onclick="quickSearch('Garri')" class="btn btn-light" style="padding:8px 14px; border-radius:var(--radius-md); font-size:0.75rem;">🍚 Garri</button>
+                        <button onclick="quickSearch('Chicken')" class="btn btn-light" style="padding:8px 14px; border-radius:var(--radius-md); font-size:0.75rem;">🍗 Chicken</button>
+                        <button onclick="quickSearch('Plantain')" class="btn btn-light" style="padding:8px 14px; border-radius:var(--radius-md); font-size:0.75rem;">🍌 Plantain</button>
+                        <button onclick="quickSearch('Milk')" class="btn btn-light" style="padding:8px 14px; border-radius:var(--radius-md); font-size:0.75rem;">🥛 Milk</button>
+                        <button onclick="quickSearch('Rice')" class="btn btn-light" style="padding:8px 14px; border-radius:var(--radius-md); font-size:0.75rem;">🌾 Rice</button>
+                        <button onclick="quickSearch('Egg')" class="btn btn-light" style="padding:8px 14px; border-radius:var(--radius-md); font-size:0.75rem;">🥚 Egg</button>
+                    </div>
+                </div>
+
+                <div id="apiLoader" style="display:none; padding:48px; text-align:center;">
+                    <p style="font-size:0.875rem; font-weight:600; color:var(--text-muted);">Querying Open Food Facts database...</p>
+                </div>
+            </section>
+
+            <!-- 3. BARCODE SCANNER VIEW -->
+            <section id="view-barcode" class="page-view">
+                <div style="margin-bottom:24px;">
+                    <h2 style="font-size:1.5rem; font-weight:900;">Barcode Lookup & Scanner</h2>
+                    <p style="font-size:0.875rem; color:var(--text-muted);">Scan product barcodes or enter numbers manually to fetch full nutrition details instantly.</p>
+                </div>
+
+                <div class="grid-2">
+                    <div class="scanner-box">
+                        <div id="scannerViewport" class="scanner-frame">
+                            <div class="laser-line"></div>
+                            <i data-lucide="scan" style="width:48px; height:48px; color:#34d399; margin-bottom:8px;"></i>
+                            <p style="font-size:0.75rem; color:#a7f3d0; font-weight:600;">Align barcode within frame</p>
+                            <span id="scanStatusText" style="font-size:0.625rem; color:#94a3b8; margin-top:4px;">Scanner simulation active</span>
+                        </div>
+                        <div style="margin-top:16px;">
+                            <button id="toggleCameraBtn" onclick="toggleSimulatedScan()" class="btn btn-primary">
+                                <i data-lucide="camera" style="width:16px; height:16px;"></i> Trigger Camera Scan
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+                        <div>
+                            <h3 style="font-size:1rem; font-weight:800; margin-bottom:4px; display:flex; align-items:center; gap:8px;">
+                                <i data-lucide="barcode" style="width:20px; height:20px; color:var(--primary-dark);"></i> Enter Barcode Number
+                            </h3>
+                            <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:16px;">Enter standard GTIN / EAN / UPC numeric barcode code.</p>
+
+                            <form id="barcodeForm" style="display:flex; flex-direction:column; gap:12px;">
+                                <div>
+                                    <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">Product Barcode</label>
+                                    <input type="text" id="barcodeInput" placeholder="e.g., 737628064502" class="input-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="padding:12px;">
+                                    <i data-lucide="search" style="width:16px; height:16px;"></i> Search Barcode
+                                </button>
+                            </form>
+                        </div>
+
+                        <div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--border-subtle);">
+                            <p style="font-size:0.75rem; font-weight:700; color:var(--text-subtle); text-transform:uppercase; margin-bottom:8px;">Test Sample Barcodes</p>
+                            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                                <button onclick="quickBarcode('737628064502')" class="btn btn-light" style="font-family:monospace; font-size:0.75rem;">737628064502</button>
+                                <button onclick="quickBarcode('3017620422003')" class="btn btn-light" style="font-family:monospace; font-size:0.75rem;">3017620422003</button>
+                                <button onclick="quickBarcode('5000159461122')" class="btn btn-light" style="font-family:monospace; font-size:0.75rem;">5000159461122</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. SEARCH RESULTS VIEW -->
+            <section id="view-results" class="page-view">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
+                    <div>
+                        <h2 style="font-size:1.5rem; font-weight:900;">
+                            Results for "<span id="searchKeywordLabel" style="color:var(--primary-dark);"></span>"
+                        </h2>
+                        <p style="font-size:0.875rem; color:var(--text-muted);" id="resultsCountLabel">0 items found</p>
+                    </div>
+                    <button onclick="switchView('search')" class="btn btn-secondary">
+                        New Search
+                    </button>
+                </div>
+
+                <div id="searchResultsList" style="display:flex; flex-direction:column; gap:12px;">
+                    <!-- Dynamic Result Cards -->
+                </div>
+            </section>
+
+            <!-- 5. NUTRITION DETAILS VIEW -->
+            <section id="view-details" class="page-view">
+                <button onclick="switchView('results')" class="btn" style="padding:0; background:none; color:var(--primary-dark); font-size:0.875rem; margin-bottom:16px;">
+                    <i data-lucide="arrow-left" style="width:16px; height:16px;"></i> Back to Results
+                </button>
+
+                <div class="card">
+                    <div style="display:flex; gap:24px; align-items:flex-start; margin-bottom:24px; flex-wrap:wrap;">
+                        <img id="detailImg" src="" alt="Food Preview" style="width:140px; height:140px; border-radius:var(--radius-lg); object-fit:cover; border:1px solid var(--border-color); background:#f8fafc;">
+                        <div style="flex:1;">
+                            <span style="display:inline-flex; align-items:center; gap:4px; padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:700; background:#d1fae5; color:#065f46; margin-bottom:8px;">
+                                <i data-lucide="check-circle-2" style="width:14px; height:14px;"></i> Verified Food Product
+                            </span>
+                            <h2 id="detailTitle" style="font-size:1.5rem; font-weight:900;">Food Name</h2>
+                            <p id="detailBrand" style="font-size:0.8125rem; color:var(--text-subtle); margin-bottom:12px;">Brand / Source</p>
+                            
+                            <div style="display:flex; align-items:baseline; gap:8px; background:#f8fafc; padding:8px 16px; border-radius:var(--radius-md); width:fit-content; border:1px solid var(--border-subtle);">
+                                <span id="detailCalories" style="font-size:2rem; font-weight:900;">0</span>
+                                <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">kcal per 100g</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-subtle); letter-spacing:0.05em; margin-bottom:16px;">Nutritional Facts (per 100g)</h3>
+                    
+                    <div class="grid-6" style="margin-bottom:32px;">
+                        <div style="background:#fffbeb; padding:12px; border-radius:var(--radius-md); border:1px solid #fef3c7;">
+                            <p style="font-size:0.625rem; font-weight:700; text-transform:uppercase; color:#b45309;">Calories</p>
+                            <p id="tileCal" style="font-size:1rem; font-weight:900; color:#78350f;">0 kcal</p>
+                        </div>
+                        <div style="background:#ecfdf5; padding:12px; border-radius:var(--radius-md); border:1px solid #a7f3d0;">
+                            <p style="font-size:0.625rem; font-weight:700; text-transform:uppercase; color:#047857;">Carbs</p>
+                            <p id="tileCarbs" style="font-size:1rem; font-weight:900; color:#064e3b;">0 g</p>
+                        </div>
+                        <div style="background:#eff6ff; padding:12px; border-radius:var(--radius-md); border:1px solid #bfdbfe;">
+                            <p style="font-size:0.625rem; font-weight:700; text-transform:uppercase; color:#1d4ed8;">Protein</p>
+                            <p id="tileProtein" style="font-size:1rem; font-weight:900; color:#1e3a8a;">0 g</p>
+                        </div>
+                        <div style="background:#fffbeb; padding:12px; border-radius:var(--radius-md); border:1px solid #fef3c7;">
+                            <p style="font-size:0.625rem; font-weight:700; text-transform:uppercase; color:#b45309;">Fat</p>
+                            <p id="tileFat" style="font-size:1rem; font-weight:900; color:#78350f;">0 g</p>
+                        </div>
+                        <div style="background:#faf5ff; padding:12px; border-radius:var(--radius-md); border:1px solid #e9d5ff;">
+                            <p style="font-size:0.625rem; font-weight:700; text-transform:uppercase; color:#6b21a8;">Sugar</p>
+                            <p id="tileSugar" style="font-size:1rem; font-weight:900; color:#581c87;">0 g</p>
+                        </div>
+                        <div style="background:#f0fdf4; padding:12px; border-radius:var(--radius-md); border:1px solid #bbf7d0;">
+                            <p style="font-size:0.625rem; font-weight:700; text-transform:uppercase; color:#15803d;">Fiber</p>
+                            <p id="tileFiber" style="font-size:1rem; font-weight:900; color:#14532d;">0 g</p>
+                        </div>
+                    </div>
+
+                    <div style="padding-top:24px; border-top:1px solid var(--border-subtle); display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+                        <div>
+                            <label for="detailServingGrams" style="display:block; font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">Serving Amount (g or ml)</label>
+                            <input type="number" id="detailServingGrams" value="100" min="1" class="input-control" style="width:140px;">
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button id="addToOfflineLibBtn" onclick="saveCurrentProductOffline()" class="btn btn-secondary">
+                                <i data-lucide="bookmark" style="width:16px; height:16px; color:var(--primary-dark);"></i> Save Offline
+                            </button>
+                            <button id="addToLogBtn" class="btn btn-primary">
+                                <i data-lucide="plus" style="width:16px; height:16px;"></i> Add to Daily Log
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. OFFLINE SAVED FOODS LIBRARY VIEW -->
+            <section id="view-offline" class="page-view">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+                    <div>
+                        <h2 style="font-size:1.5rem; font-weight:900;">Offline Saved Food Library</h2>
+                        <p style="font-size:0.875rem; color:var(--text-muted);">All foods logged or saved are accessible anytime offline without internet connection.</p>
+                    </div>
+                    <button onclick="openCreateCustomFoodModal()" class="btn btn-primary">
+                        <i data-lucide="plus-circle" style="width:16px; height:16px;"></i> Add Custom Food
+                    </button>
+                </div>
+
+                <div style="position:relative; margin-bottom:24px;">
+                    <i data-lucide="search" style="position:absolute; left:16px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--text-subtle);"></i>
+                    <input type="text" id="offlineSearchInput" placeholder="Filter saved offline foods..." oninput="renderOfflineLibrary()" class="input-control" style="padding-left:40px;">
+                </div>
+
+                <div id="offlineLibraryGrid" class="grid-3">
+                    <!-- Dynamic Offline Saved Item Cards -->
+                </div>
+            </section>
+
+            <!-- 7. DAILY LOG VIEW -->
+            <section id="view-log" class="page-view">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+                    <div>
+                        <h2 style="font-size:1.5rem; font-weight:900;">Daily Meal Log</h2>
+                        <p style="font-size:0.875rem; color:var(--text-muted);">Review all nutrition inputs logged for today.</p>
+                    </div>
+                    <button onclick="switchView('search')" class="btn btn-primary">
+                        <i data-lucide="plus" style="width:16px; height:16px;"></i> Add Food
+                    </button>
+                </div>
+
+                <div class="grid-3" style="margin-bottom:24px;">
+                    <div class="card" style="text-align:center;">
+                        <p id="logTotalConsumed" style="font-size:1.75rem; font-weight:900; color:var(--primary-dark);">0 kcal</p>
+                        <p style="font-size:0.75rem; font-weight:700; color:var(--text-subtle); text-transform:uppercase;">Consumed</p>
+                    </div>
+                    <div class="card" style="text-align:center;">
+                        <p id="logDailyGoal" style="font-size:1.75rem; font-weight:900; color:#2563eb;">2500 kcal</p>
+                        <p style="font-size:0.75rem; font-weight:700; color:var(--text-subtle); text-transform:uppercase;">Daily Target</p>
+                    </div>
+                    <div class="card" style="text-align:center;">
+                        <p id="logRemaining" style="font-size:1.75rem; font-weight:900; color:#d97706;">2500 kcal</p>
+                        <p style="font-size:0.75rem; font-weight:700; color:var(--text-subtle); text-transform:uppercase;">Remaining</p>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Food Item</th>
+                                <th>Quantity</th>
+                                <th>Calories</th>
+                                <th style="text-align:right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mealTableBody">
+                            <!-- Dynamic rows -->
+                        </tbody>
+                        <tfoot style="background:#f8fafc; font-weight:700;">
+                            <tr>
+                                <td>Total Today</td>
+                                <td>-</td>
+                                <td id="tableTotalCalories" style="color:var(--primary-dark);">0 kcal</td>
+                                <td style="text-align:right;">
+                                    <button id="clearLogBtn" style="background:none; border:none; color:#dc2626; font-weight:700; font-size:0.75rem; cursor:pointer;">Clear Log</button>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 8. NUTRITION GOALS VIEW -->
+            <section id="view-goals" class="page-view">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+                    <div>
+                        <h2 style="font-size:1.5rem; font-weight:900;">Nutrition Goals & Targets</h2>
+                        <p style="font-size:0.875rem; color:var(--text-muted);">Configure your daily energy targets and macronutrient ratio.</p>
+                    </div>
+                    <button id="editGoalsBtn" class="btn btn-light">
+                        <i data-lucide="edit-3" style="width:16px; height:16px;"></i> Edit Targets
+                    </button>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h3 style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-subtle); letter-spacing:0.05em; margin-bottom:8px;">Target Calories</h3>
+                        <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:16px;">
+                            <span id="goalCalorieDisplay" style="font-size:2.25rem; font-weight:900;">2500</span>
+                            <span style="font-size:0.875rem; font-weight:700; color:var(--text-muted);">kcal / day</span>
+                        </div>
+
+                        <div style="border-top:1px solid var(--border-subtle); padding-top:16px; display:flex; flex-direction:column; gap:16px;">
+                            <h3 style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-subtle); letter-spacing:0.05em;">Macronutrient Distribution</h3>
+                            
+                            <div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:700; margin-bottom:4px;">
+                                    <span>Carbohydrates Target</span>
+                                    <span><strong id="goalCarbsDisplay">300</strong>g</span>
+                                </div>
+                                <div class="macro-bar-container"><div class="macro-bar-fill bg-carbs" style="width:100%;"></div></div>
+                            </div>
+
+                            <div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:700; margin-bottom:4px;">
+                                    <span>Protein Target</span>
+                                    <span><strong id="goalProteinDisplay">100</strong>g</span>
+                                </div>
+                                <div class="macro-bar-container"><div class="macro-bar-fill bg-protein" style="width:100%;"></div></div>
+                            </div>
+
+                            <div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:700; margin-bottom:4px;">
+                                    <span>Fat Target</span>
+                                    <span><strong id="goalFatDisplay">70</strong>g</span>
+                                </div>
+                                <div class="macro-bar-container"><div class="macro-bar-fill bg-fat" style="width:100%;"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+                        <div style="width:64px; height:64px; border-radius:50%; background:#fef3c7; color:#d97706; display:flex; align-items:center; justify-content:center; margin-bottom:16px;">
+                            <i data-lucide="trophy" style="width:32px; height:32px;"></i>
+                        </div>
+                        <h3 style="font-size:1.125rem; font-weight:800;">Overall Progress Today</h3>
+                        <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:16px;">Calculated based on your active daily calorie consumption target.</p>
+                        
+                        <div class="macro-bar-container" style="margin-bottom:12px;">
+                            <div id="overallGoalProgressBar" class="macro-bar-fill bg-carbs" style="width:0%;"></div>
+                        </div>
+                        <p style="font-size:2rem; font-weight:900; color:var(--primary-dark);"><span id="overallGoalPct">0</span>%</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 9. HISTORY VIEW -->
+            <section id="view-history" class="page-view">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+                    <div>
+                        <h2 style="font-size:1.5rem; font-weight:900;">Nutrition History Logs</h2>
+                        <p style="font-size:0.875rem; color:var(--text-muted);">Track your daily calorie logs over time and analyze trends.</p>
+                    </div>
+                    <button onclick="clearAllHistoryData()" class="btn btn-danger">
+                        Clear History
+                    </button>
+                </div>
+
+                <div class="grid-3" style="margin-bottom:24px;">
+                    <div class="card" style="grid-column: span 2;">
+                        <h3 style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-subtle); letter-spacing:0.05em; margin-bottom:16px;">Past 7 Days Calories Overview</h3>
+                        <div id="historyBarGraph" style="height:180px; display:flex; align-items:flex-end; justify-content:space-between; gap:8px; padding-top:16px;">
+                            <!-- Dynamic Bar Chart elements -->
+                        </div>
+                    </div>
+
+                    <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+                        <div>
+                            <h3 style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-subtle); letter-spacing:0.05em; margin-bottom:12px;">History Summary</h3>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                <div style="display:flex; justify-content:space-between; font-size:0.875rem; padding:8px 0; border-bottom:1px solid var(--border-subtle);">
+                                    <span style="color:var(--text-muted);">Total Saved Logs</span>
+                                    <span id="historyLogCount" style="font-weight:700;">1</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.875rem; padding:8px 0; border-bottom:1px solid var(--border-subtle);">
+                                    <span style="color:var(--text-muted);">Average Daily Intake</span>
+                                    <span id="historyAvgCal" style="font-weight:700; color:var(--primary-dark);">0 kcal</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p style="font-size:0.6875rem; color:var(--text-subtle); margin-top:16px;">History logs are automatically committed daily to local device storage.</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size:1rem; font-weight:800; margin-bottom:16px;">Recorded Log Entries</h3>
+                    <div id="historyListContainer" style="display:flex; flex-direction:column; gap:12px;">
+                        <!-- Dynamic history logs -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 10. SETTINGS VIEW -->
+            <section id="view-settings" class="page-view">
+                <div style="margin-bottom:24px;">
+                    <h2 style="font-size:1.5rem; font-weight:900;">App Settings & Profile</h2>
+                    <p style="font-size:0.875rem; color:var(--text-muted);">Manage user profile preferences, offline database cache, and unit configurations.</p>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h3 style="font-size:1rem; font-weight:800; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+                            <i data-lucide="user" style="width:20px; height:20px; color:var(--primary-dark);"></i> User Profile
+                        </h3>
+
+                        <form id="profileForm" style="display:flex; flex-direction:column; gap:16px;">
+                            <div>
+                                <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">Display Name</label>
+                                <input type="text" id="settingNameInput" class="input-control">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">Email Address</label>
+                                <input type="email" id="settingEmailInput" class="input-control">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">Avatar Image URL</label>
+                                <input type="text" id="settingAvatarInput" class="input-control">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                Save Profile Changes
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+                        <div>
+                            <h3 style="font-size:1rem; font-weight:800; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+                                <i data-lucide="hard-drive" style="width:20px; height:20px; color:var(--primary-dark);"></i> Storage & Offline Cache
+                            </h3>
+
+                            <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;">
+                                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px; background:#f8fafc; border-radius:var(--radius-md);">
+                                    <div>
+                                        <p style="font-size:0.75rem; font-weight:700;">Offline Food Library Items</p>
+                                        <p id="settingCacheCount" style="font-size:0.75rem; color:var(--text-muted);">0 products stored</p>
+                                    </div>
+                                    <button onclick="clearOfflineCache()" class="btn btn-danger" style="padding:6px 12px; font-size:0.75rem;">
+                                        Clear Cache
+                                    </button>
+                                </div>
+
+                                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px; background:#f8fafc; border-radius:var(--radius-md);">
+                                    <div>
+                                        <p style="font-size:0.75rem; font-weight:700;">Reset Application State</p>
+                                        <p style="font-size:0.75rem; color:var(--text-muted);">Restore factory defaults</p>
+                                    </div>
+                                    <button onclick="resetAppDefaults()" class="btn btn-secondary" style="padding:6px 12px; font-size:0.75rem;">
+                                        Reset App
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="padding:16px; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:var(--radius-md); font-size:0.75rem; color:#065f46; display:flex; gap:8px;">
+                            <i data-lucide="shield-check" style="width:20px; height:20px; color:var(--primary-dark); flex-shrink:0;"></i>
+                            <p>All user data is stored locally in your web browser with offline access support.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Install App Card -->
+                <div class="card" style="margin-top:24px;">
+                    <div style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap; justify-content:space-between;">
+                        <div style="display:flex; gap:16px; max-width:520px;">
+                            <div style="width:44px; height:44px; flex-shrink:0; border-radius:var(--radius-md); background:linear-gradient(160deg, var(--primary), var(--bg-sidebar)); display:flex; align-items:center; justify-content:center;">
+                                <i data-lucide="smartphone" style="width:22px; height:22px; color:#fff;"></i>
+                            </div>
+                            <div>
+                                <h3 style="font-size:1rem; font-weight:800; margin-bottom:4px;">Install NutriFlow</h3>
+                                <p id="installCardDesc" style="font-size:0.8125rem; color:var(--text-muted); line-height:1.5;">
+                                    Add NutriFlow to your home screen for a full-screen, app-like experience that launches instantly and works offline.
+                                </p>
+                                <div id="alreadyInstalledNote" class="hidden" style="margin-top:10px; font-size:0.75rem; font-weight:700; color:#047857; display:flex; align-items:center; gap:6px;">
+                                    <i data-lucide="check-circle" style="width:14px; height:14px;"></i> You're using the installed app
+                                </div>
+                                <div id="iosInstallHint" class="hidden" style="margin-top:12px; padding:12px; background:#f8fafc; border:1px solid var(--border-color); border-radius:var(--radius-md); font-size:0.75rem; color:var(--text-muted); line-height:1.6;">
+                                    On iPhone or iPad: tap the <strong>Share</strong> icon <i data-lucide="upload" style="width:12px; height:12px; vertical-align:-1px;"></i> in Safari's toolbar, then choose <strong>Add to Home Screen</strong>.
+                                </div>
+                            </div>
+                        </div>
+                        <button id="installBtnSettings" class="btn btn-primary js-install-btn hidden" style="flex-shrink:0;">
+                            <i data-lucide="download" style="width:16px; height:16px;"></i>
+                            <span>Install App</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 11. ABOUT VIEW -->
+            <section id="view-about" class="page-view">
+                <div class="card" style="padding:32px; margin-bottom:24px;">
+                    <div style="max-width:640px;">
+                        <span style="display:inline-flex; align-items:center; gap:4px; padding:4px 12px; background:#d1fae5; color:#065f46; border-radius:999px; font-size:0.75rem; font-weight:800; margin-bottom:16px;">
+                            <i data-lucide="sparkles" style="width:14px; height:14px;"></i> Version 2.6 • Installable PWA
+                        </span>
+                        <h2 style="font-size:2rem; font-weight:900; margin-bottom:12px; line-height:1.2;">
+                            NutriFlow Smart Nutrition & Calorie Companion
+                        </h2>
+                        <p style="font-size:0.875rem; color:var(--text-muted); line-height:1.6; margin-bottom:24px;">
+                            NutriFlow helps you effortlessly monitor daily calorie intake, macronutrients, barcode scanner lookups, and offline meal tracking with Open Food Facts integration. Install it from Settings for a full-screen app experience that works offline.
+                        </p>
+
+                        <div style="display:flex; flex-wrap:wrap; gap:12px;">
+                            <button onclick="switchView('search')" class="btn btn-primary">Start Searching Food</button>
+                            <button onclick="switchView('barcode')" class="btn btn-secondary">Scan Barcode</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-3">
+                    <div class="card">
+                        <div style="width:40px; height:40px; border-radius:var(--radius-md); background:#d1fae5; color:var(--primary-dark); display:flex; align-items:center; justify-content:center; margin-bottom:16px;">
+                            <i data-lucide="wifi-off" style="width:20px; height:20px;"></i>
+                        </div>
+                        <h3 style="font-weight:700; margin-bottom:4px;">Offline Persistence</h3>
+                        <p style="font-size:0.75rem; color:var(--text-muted);">All added foods and barcode lookups are cached locally so you can search and log meals anytime.</p>
+                    </div>
+
+                    <div class="card">
+                        <div style="width:40px; height:40px; border-radius:var(--radius-md); background:#dbeafe; color:#2563eb; display:flex; align-items:center; justify-content:center; margin-bottom:16px;">
+                            <i data-lucide="qr-code" style="width:20px; height:20px;"></i>
+                        </div>
+                        <h3 style="font-weight:700; margin-bottom:4px;">Barcode Lookup</h3>
+                        <p style="font-size:0.75rem; color:var(--text-muted);">Instant query against Open Food Facts global database with camera simulation and barcode inputs.</p>
+                    </div>
+
+                    <div class="card">
+                        <div style="width:40px; height:40px; border-radius:var(--radius-md); background:#fef3c7; color:#d97706; display:flex; align-items:center; justify-content:center; margin-bottom:16px;">
+                            <i data-lucide="activity" style="width:20px; height:20px;"></i>
+                        </div>
+                        <h3 style="font-weight:700; margin-bottom:4px;">Macro & Goal Analytics</h3>
+                        <p style="font-size:0.75rem; color:var(--text-muted);">Realtime tracking of Protein, Carbs, Fat, and Calories with custom goal targets and history logs.</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="mobile-nav" id="mobileNav">
+        <button class="mobile-nav-item active" data-view="dashboard">
+            <i data-lucide="layout-dashboard" style="width:20px; height:20px;"></i>
+            <span>Home</span>
+        </button>
+        <button class="mobile-nav-item" data-view="search">
+            <i data-lucide="search" style="width:20px; height:20px;"></i>
+            <span>Search</span>
+        </button>
+        <button class="mobile-nav-item" data-view="barcode">
+            <i data-lucide="qr-code" style="width:20px; height:20px;"></i>
+            <span>Scan</span>
+        </button>
+        <button class="mobile-nav-item" data-view="log">
+            <i data-lucide="clipboard-list" style="width:20px; height:20px;"></i>
+            <span>Log</span>
+        </button>
+        <button class="mobile-nav-item" data-view="history">
+            <i data-lucide="history" style="width:20px; height:20px;"></i>
+            <span>History</span>
+        </button>
+    </nav>
+
+    <!-- Modal: Add Custom Offline Food -->
+    <div id="customFoodModal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 style="font-size:1.125rem; font-weight:800; margin-bottom:4px;">Create Custom Food Item</h3>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:16px;">Saved instantly into your offline food database.</p>
+
+            <form id="customFoodForm" style="display:flex; flex-direction:column; gap:12px;">
+                <div>
+                    <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">Food Name</label>
+                    <input type="text" id="cfName" required class="input-control">
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">Calories (kcal/100g)</label>
+                        <input type="number" id="cfCal" required min="0" class="input-control">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">Carbs (g)</label>
+                        <input type="number" id="cfCarbs" step="0.1" min="0" value="0" class="input-control">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">Protein (g)</label>
+                        <input type="number" id="cfProtein" step="0.1" min="0" value="0" class="input-control">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">Fat (g)</label>
+                        <input type="number" id="cfFat" step="0.1" min="0" value="0" class="input-control">
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+                    <button type="button" onclick="closeCustomFoodModal()" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Custom Food</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Goals Editor -->
+    <div id="goalsModal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 style="font-size:1.125rem; font-weight:800; margin-bottom:4px;">Edit Nutrition Goals</h3>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:16px;">Set your personal calorie and macro targets.</p>
+
+            <form id="goalsForm" style="display:flex; flex-direction:column; gap:12px;">
+                <div>
+                    <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">Daily Calorie Target (kcal)</label>
+                    <input type="number" id="inputGoalCalories" required min="500" class="input-control">
+                </div>
+                <div class="grid-3">
+                    <div>
+                        <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">Carbs (g)</label>
+                        <input type="number" id="inputGoalCarbs" required min="0" class="input-control">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">Protein (g)</label>
+                        <input type="number" id="inputGoalProtein" required min="0" class="input-control">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">Fat (g)</label>
+                        <input type="number" id="inputGoalFat" required min="0" class="input-control">
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+                    <button type="button" id="cancelGoalsBtn" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Targets</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: iOS Install Instructions (Safari has no native install prompt) -->
+    <div id="iosInstallModal" class="modal-overlay">
+        <div class="modal-card" style="max-width:360px; text-align:center;">
+            <div style="width:48px; height:48px; margin:0 auto 16px; border-radius:var(--radius-md); background:linear-gradient(160deg, var(--primary), var(--bg-sidebar)); display:flex; align-items:center; justify-content:center;">
+                <i data-lucide="smartphone" style="width:24px; height:24px; color:#fff;"></i>
+            </div>
+            <h3 style="font-size:1.125rem; font-weight:800; margin-bottom:8px;">Install NutriFlow</h3>
+            <p style="font-size:0.8125rem; color:var(--text-muted); margin-bottom:20px;">Safari doesn't support one-tap install, but adding NutriFlow to your Home Screen takes two steps:</p>
+
+            <div style="display:flex; flex-direction:column; gap:12px; text-align:left; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <span style="width:24px; height:24px; flex-shrink:0; border-radius:50%; background:var(--primary-light); color:var(--primary-dark); font-size:0.75rem; font-weight:800; display:flex; align-items:center; justify-content:center;">1</span>
+                    <span style="font-size:0.8125rem;">Tap the <strong>Share</strong> icon <i data-lucide="upload" style="width:14px; height:14px; vertical-align:-2px;"></i> in Safari's toolbar</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <span style="width:24px; height:24px; flex-shrink:0; border-radius:50%; background:var(--primary-light); color:var(--primary-dark); font-size:0.75rem; font-weight:800; display:flex; align-items:center; justify-content:center;">2</span>
+                    <span style="font-size:0.8125rem;">Scroll down and tap <strong>Add to Home Screen</strong></span>
+                </div>
+            </div>
+
+            <button type="button" onclick="closeIOSInstallModal()" class="btn btn-primary" style="width:100%;">Got It</button>
+        </div>
+    </div>
+
+<script src="asset/js/script.js"></script>
+</body>
+</html>

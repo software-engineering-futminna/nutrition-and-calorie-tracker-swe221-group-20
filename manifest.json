@@ -1,0 +1,45 @@
+{
+  "name": "NutriFlow - Smart Nutrition & Calorie Tracker",
+  "short_name": "NutriFlow",
+  "description": "Track calories, macros, and food nutrition with barcode scanning, an offline food library, and Open Food Facts integration.",
+  "id": "./index.html",
+  "start_url": "./index.html?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#f4f6f5",
+  "theme_color": "#059669",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["health", "food", "lifestyle", "productivity"],
+  "icons": [
+    { "src": "asset/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "asset/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "asset/icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "asset/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Search Food",
+      "short_name": "Search",
+      "description": "Search the Open Food Facts database",
+      "url": "./index.html?view=search",
+      "icons": [{ "src": "asset/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Scan Barcode",
+      "short_name": "Scan",
+      "description": "Look up a product by barcode",
+      "url": "./index.html?view=barcode",
+      "icons": [{ "src": "asset/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Daily Log",
+      "short_name": "Log",
+      "description": "View today's logged meals",
+      "url": "./index.html?view=log",
+      "icons": [{ "src": "asset/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
